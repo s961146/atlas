@@ -16,6 +16,7 @@ import random
 from collections import namedtuple
 import pandas as pd
 import statistics
+import glob
 
 from vacuum import *
 
@@ -48,7 +49,7 @@ class Suite():
             logging.info('Running seeds {}-{}...'.format(start_seed,
                 ending_seed))
             output_file = 'output{}.csv'.format(start_seed)
-            cmd_line = ['./chunk_vacuum.py', userid, '{}-{}'.format(
+            cmd_line = ['python','./chunk_vacuum.py', userid, '{}-{}'.format(
                 start_seed, ending_seed), str(max_steps) ]
             procs.append(subprocess.Popen(cmd_line))
             output_files.append(output_file)
@@ -57,25 +58,26 @@ class Suite():
         [ p.wait() for p in procs ]
         print('...done.')
 
-        with open('output.csv','w') as f:
-            subprocess.Popen(['cat'] + output_files, stdout=f)
+        results = pd.DataFrame({'seed':[],'score':[],'num_steps':[]})
+        results = pd.concat([ pd.read_csv(ofile, encoding="utf-8")
+            for ofile in output_files ])
 
-        os.system('grep -v "seed" output.csv > output2.csv')
-        os.system('head -1 output.csv > outputheader.csv')
-        os.system('cat outputheader.csv output2.csv > output3.csv')
-        results = pd.read_csv('output3.csv')
         scores = results['score']
         steps = results['num_steps']
-        with open('outputheader.csv','w') as f:
+        with open(f'output_{userid}.csv','w',encoding="utf-8") as f:
+            print('# Score: min {}, max {}, med {}'.format(min(scores),
+                max(scores), int(statistics.median(scores))))
+            print('# Num steps: min {}, max {}, med {}'.format(min(steps),
+                max(steps), int(statistics.median(steps))))
             print('# Score: min {}, max {}, med {}'.format(min(scores),
                 max(scores), int(statistics.median(scores))), file=f)
             print('# Num steps: min {}, max {}, med {}'.format(min(steps),
                 max(steps), int(statistics.median(steps))), file=f)
-        os.system('cat outputheader.csv output3.csv > ' +
-            'output_' + userid + '.csv')
-        os.system('rm output[0-9]*.csv')
-        os.system('head -2 output_' + userid + '.csv')
-        print('Output in output_' + userid + '.csv.')
+        results.to_csv(f"output_{userid}.csv",mode="a",encoding="utf-8",
+            index=None)
+        print(f'Output in output_{userid}.csv.')
+        for ofile in glob.glob('output[0-9]*.csv'):
+            os.remove(ofile)
         med = statistics.median(scores)
         if med > 4000:
             print("\n{} earned +40XP! (the max)".format(userid))
