@@ -4,11 +4,15 @@
 CPSC 415 -- Homework #2 template
 Stephen Davies, University of Mary Washington, fall 2021
 '''
+import math
 
 from atlas import Atlas
 import numpy as np
 import logging
 import sys
+from atlas import gen_adj_mat
+from gps_rado import *
+
 
 
 def find_best_path(atlas):
@@ -21,6 +25,15 @@ def find_best_path(atlas):
     # THIS IS WHERE YOUR AMAZING CODE GOES
 
     # Here's a (bogus) example return value:
+
+    #arrakis = Atlas.from_filename('fifty.atlas')
+    atlas_matrix = np.zeros([atlas.get_num_cities(),atlas.get_num_cities()])
+
+    for ix,iy in np.ndindex(atlas_matrix.shape):
+        atlas_matrix[ix,iy] = atlas.get_road_dist(ix,iy)
+
+    print(find_nonzero_indexes(atlas_matrix[0]))
+
     return ([0,3,2,4],970)
 
 
