@@ -10,3 +10,7 @@ def find_nonzero_indexes (mat):
         if x != 0 and x != math.inf:
             dict[index[0]]=x
     return dict
+
+def astar_func (n):
+    n +=1
+    return n

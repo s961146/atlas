@@ -14,7 +14,6 @@ from atlas import gen_adj_mat
 from gps_rado import *
 
 
-
 def find_best_path(atlas):
     '''Finds the best path from src to dest, based on costs from atlas.
     Returns a tuple of two elements. The first is a list of city numbers,
@@ -26,26 +25,61 @@ def find_best_path(atlas):
 
     # Here's a (bogus) example return value:
 
-    #arrakis = Atlas.from_filename('fifty.atlas')
-    atlas_matrix = np.zeros([atlas.get_num_cities(),atlas.get_num_cities()])
+    # arrakis = Atlas.from_filename('fifty.atlas')
 
-    for ix,iy in np.ndindex(atlas_matrix.shape):
-        atlas_matrix[ix,iy] = atlas.get_road_dist(ix,iy)
+    apath = [0]
 
-    print(find_nonzero_indexes(atlas_matrix[0]))
+    distance = 0.
+    num_city= atlas.get_num_cities()
+    atlas_matrix = np.zeros([num_city, num_city])
 
-    return ([0,3,2,4],970)
+    for ix, iy in np.ndindex(atlas_matrix.shape):
+        atlas_matrix[ix, iy] = atlas.get_road_dist(ix, iy)
+    d = find_nonzero_indexes(atlas_matrix[0])
+    node = 1
+    currrnt_city = 0
 
+    while True:
+        if currrnt_city == num_city - 1:
+            break
+        for i in apath:
+            d.pop(i,None)
+
+        min_tuple = ()
+        for key in d:
+            if min_tuple:
+                temp = atlas.get_crow_flies_dist(key, num_city-1)
+
+                if min_tuple[1] > temp:
+                    #print('key ',key)
+                    if key not in apath:
+                        min_tuple = (key, temp)
+            else:
+                min_tuple = (key, atlas.get_crow_flies_dist(key,num_city-1))
+
+        #print('tuple ', min_tuple)
+        distance += atlas.get_road_dist(currrnt_city,min_tuple[0])
+        currrnt_city = min_tuple[0]
+        #print ('cc ',currrnt_city)
+
+        apath.append(currrnt_city)
+        d = find_nonzero_indexes(atlas_matrix[currrnt_city])
+        #print('ddd ', d)
+        print('path: {0}, dist {1} '.format(apath,distance))
+        input("Press Enter to continue...")
+        #min_tuple =()
+
+    return ([0, 3, 2, 4], 970)
 
 
 if __name__ == '__main__':
 
-    if len(sys.argv) not in [2,3]:
+    if len(sys.argv) not in [2, 3]:
         print("Usage: gps.py numCities|atlasFile [debugLevel].")
         sys.exit(1)
 
     if len(sys.argv) > 2:
-        if sys.argv[2] not in ['DEBUG','INFO','WARNING','ERROR']:
+        if sys.argv[2] not in ['DEBUG', 'INFO', 'WARNING', 'ERROR']:
             print('Debug level must be one of: DEBUG, INFO, WARNING, ERROR.')
             sys.exit(2)
         logging.getLogger().setLevel(sys.argv[2])
@@ -65,7 +99,6 @@ if __name__ == '__main__':
 
     path, cost = find_best_path(usa)
     print('Best path from {} to {} costs {}: {}.'.format(0,
-        usa.get_num_cities()-1, cost, path))
+                                                         usa.get_num_cities() - 1, cost, path))
     print('You expanded {} nodes: {}'.format(len(usa._nodes_expanded),
-        usa._nodes_expanded))
-
+                                             usa._nodes_expanded))
