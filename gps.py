@@ -10,8 +10,6 @@ from atlas import Atlas
 import numpy as np
 import logging
 import sys
-from atlas import gen_adj_mat
-from gps_rado import *
 
 
 def find_best_path(atlas):
@@ -25,51 +23,51 @@ def find_best_path(atlas):
 
     # Here's a (bogus) example return value:
 
-    # arrakis = Atlas.from_filename('fifty.atlas')
+    def find_nonzero_indexes(x):
+        dict = []
+        for i in range(0, atlas.get_num_cities()):
+            t = atlas.get_road_dist(x, i)
+            if t != 0 and t != math.inf:
+                dict.append(i)
+        return dict
 
     apath = [0]
 
     distance = 0.
-    num_city= atlas.get_num_cities()
-    atlas_matrix = np.zeros([num_city, num_city])
+    num_city = atlas.get_num_cities()
 
-    for ix, iy in np.ndindex(atlas_matrix.shape):
-        atlas_matrix[ix, iy] = atlas.get_road_dist(ix, iy)
-    d = find_nonzero_indexes(atlas_matrix[0])
-    node = 1
+    d = find_nonzero_indexes(0)
+
     currrnt_city = 0
-
     while True:
+
         if currrnt_city == num_city - 1:
             break
+
         for i in apath:
-            d.pop(i,None)
+            if i in d:
+                d.remove(i)
 
         min_tuple = ()
+
         for key in d:
+            temp = atlas.get_road_dist(currrnt_city, key) + atlas.get_crow_flies_dist(key, num_city - 1)
             if min_tuple:
-                temp = atlas.get_crow_flies_dist(key, num_city-1)
-
                 if min_tuple[1] > temp:
-                    #print('key ',key)
-                    if key not in apath:
-                        min_tuple = (key, temp)
+                    min_tuple = (key, temp)
             else:
-                min_tuple = (key, atlas.get_crow_flies_dist(key,num_city-1))
+                min_tuple = (key, temp)
 
-        #print('tuple ', min_tuple)
-        distance += atlas.get_road_dist(currrnt_city,min_tuple[0])
-        currrnt_city = min_tuple[0]
-        #print ('cc ',currrnt_city)
+        if min_tuple:
+            distance = distance + atlas.get_road_dist(currrnt_city, min_tuple[0])
+            currrnt_city = min_tuple[0]
 
         apath.append(currrnt_city)
-        d = find_nonzero_indexes(atlas_matrix[currrnt_city])
-        #print('ddd ', d)
-        print('path: {0}, dist {1} '.format(apath,distance))
-        input("Press Enter to continue...")
-        #min_tuple =()
+        d = find_nonzero_indexes(currrnt_city)
+    print('path: {0}, dist {1} '.format(apath, distance))
 
-    return ([0, 3, 2, 4], 970)
+    p
+    return (apath, distance)
 
 
 if __name__ == '__main__':
