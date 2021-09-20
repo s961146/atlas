@@ -66,7 +66,6 @@ def find_best_path(atlas):
         d = find_nonzero_indexes(currrnt_city)
     print('path: {0}, dist {1} '.format(apath, distance))
 
-    p
     return (apath, distance)
 
 
